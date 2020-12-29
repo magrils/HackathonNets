@@ -6,14 +6,12 @@ import fcntl, os
 import getch
 
 def Main():
-	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  # UDP socket
-	# sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #enable broadcast ??
-	# sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) #enable broadcast ??
+	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
+	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host = '172.17.0.1'#scapy.all.get_if_addr('eth1')               # The server's hostname or IP address
-	udp_port = 13117			        # specified port to connect
+	udp_host = scapy.all.get_if_addr('eth1')				# The server's hostname or IP address
+	udp_port = 13117			        					# specified port to connect
 
-	msg = "Hello Python! from sharon & gil"
 	print ("UDP host IP:", udp_host)
 	print ("UDP host Port:", udp_port)
 
@@ -22,21 +20,23 @@ def Main():
 	sock.bind(("",udp_port))
 
 	def verify_message(data):
-		magic_cookie, message_type, port = struct.unpack('IBh', data)
-		if((magic_cookie==0xfeedbeef) and (message_type==2)):
-			return port
-		else:
+		try:
+			magic_cookie, message_type, port = struct.unpack('IBH', data)
+			if((magic_cookie==0xfeedbeef) and (message_type==2)):
+				return port
+			else:
+				return None
+		except:
+			print("unable to unpack message: ",data)
 			return None
-
 
 
 	while True:
 		print ("Waiting for server...")
 		data,addr = sock.recvfrom(1024)#receive data from client
 		(host,_)=addr
-		print(addr)
 		port=verify_message(data)
-		print(port)
+		print("server: ",addr[0]," ,",port)
 		if(port):
 			make_tcp_connection(host,port)
 
