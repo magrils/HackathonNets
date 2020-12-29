@@ -3,13 +3,14 @@ import socket
 import scapy.all
 import struct
 import fcntl, os
+import getch
 
 def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  # UDP socket
 	# sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1) #enable broadcast ??
 	# sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1) #enable broadcast ??
 
-	udp_host = scapy.all.get_if_addr('eth1')               # The server's hostname or IP address
+	udp_host = '172.17.0.1'#scapy.all.get_if_addr('eth1')               # The server's hostname or IP address
 	udp_port = 13117			        # specified port to connect
 
 	msg = "Hello Python! from sharon & gil"
@@ -22,7 +23,7 @@ def Main():
 
 	def verify_message(data):
 		magic_cookie, message_type, port = struct.unpack('IBh', data)
-		if(magic_cookie==0xfeedbeef and type==2):
+		if((magic_cookie==0xfeedbeef) and (message_type==2)):
 			return port
 		else:
 			return None
@@ -32,9 +33,13 @@ def Main():
 	while True:
 		print ("Waiting for server...")
 		data,addr = sock.recvfrom(1024)#receive data from client
+		(host,_)=addr
+		print(addr)
 		port=verify_message(data)
+		print(port)
 		if(port):
-			make_tcp_connection(addr,port)
+			make_tcp_connection(host,port)
+
 
 
 def make_tcp_connection(host,port):
@@ -42,15 +47,16 @@ def make_tcp_connection(host,port):
 	try:
 		tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		tcp_sock.settimeout(10.0)
-		# connect to server on local computer
-		tcp_sock.connect((host, port))
-		#make tcp-socket non blocking
-		#tcp_sock.setblocking(0)
-		#fcntl.fcntl(tcp_sock, fcntl.F_SETFL, os.O_NONBLOCK)
+		tcp_sock.connect((host, port))					# connect to server on local computer
+	except:
+		print("failed while connecting to server")
+		return False
+	try:
 		# message you send to server
+		print("sending team name")
 		tcp_sock.send(team_name.encode('ascii'))
 	except:
-		print("failed while connecting to server or while sending team name")
+		print("failed while sending team name")
 		return False
 	try:
 		tcp_sock.settimeout(10.0)
@@ -70,9 +76,10 @@ def make_tcp_connection(host,port):
 #TODO:close the connection after game mode
 def game_mode(tcp_sock):
 	while True:
-		str = input()
+		x=getch.getch()
+		print("you typed in\ " + x)
 		try:
-			tcp_sock.send(str.encode())
+			tcp_sock.send(x.encode())
 		except:
 			break
 
