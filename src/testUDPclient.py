@@ -33,7 +33,7 @@ def Main():
 
 	while True:
 		print ("Waiting for server...")
-		data,addr = sock.recvfrom(1024)#receive data from client
+		data,addr = sock.recvfrom(1024)				#receive data from client
 		(host,_)=addr
 		port=verify_message(data)
 		print("server: ",addr[0]," ,",port)
