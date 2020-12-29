@@ -1,15 +1,19 @@
-
+import select
 import socket
+import sys
+import time
 import scapy.all
 import struct
 import fcntl, os
 import getch
 
+GAME_DURATION=10
+
 def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host = scapy.all.get_if_addr('eth1')				# The server's hostname or IP address
+	udp_host = '172.17.0.1'#scapy.all.get_if_addr('eth1')				# The server's hostname or IP address
 	udp_port = 13117			        					# specified port to connect
 
 	print ("UDP host IP:", udp_host)
@@ -41,7 +45,6 @@ def Main():
 			make_tcp_connection(host,port)
 
 
-
 def make_tcp_connection(host,port):
 	team_name = "Maccabi Kushilamam City\n"
 	try:
@@ -53,7 +56,6 @@ def make_tcp_connection(host,port):
 		return False
 	try:
 		# message you send to server
-		print("sending team name")
 		tcp_sock.send(team_name.encode('ascii'))
 	except:
 		print("failed while sending team name")
@@ -65,20 +67,29 @@ def make_tcp_connection(host,port):
 			print(str(data.decode('ascii')))
 			game_mode(tcp_sock)
 			print("Server disconnected, listening for offer requests...")
-			return True
 		else:
 			print("got empty message from server after sending team name")
 			return False
 	except:
 		print("failed after sending team name")
 		return False
+	try:
+		tcp_sock.close()
+		return True
+	except:
+		print("failed in properly closing the connection to server")
+		return False
 
-#TODO:close the connection after game mode
+
 def game_mode(tcp_sock):
+	sys.stdin.flush()
+	end_game_time= time.time()+GAME_DURATION
 	while True:
-		x=getch.getch()
-		print("you typed in\ " + x)
 		try:
+			to_read, _, _ = select.select([sys.stdin], [], [], (end_game_time - time.time()))
+			if (to_read):
+				x=getch.getch()
+			print("you typed in\ " + x)
 			tcp_sock.send(x.encode())
 		except:
 			break
