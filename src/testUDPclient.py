@@ -17,7 +17,7 @@ print ("UDP host Port:", udp_port)
 
 # sock.sendto(msg.encode(),(udp_host,udp_port))		# Sending message to UDP server
 
-sock.bind(("",udp_port))
+sock.bind(('172.1.255.255',udp_port))
 
 while True:
 	print ("Waiting for server...")

@@ -14,11 +14,11 @@ def start_server():
     
     
     #udp_host = socket.gethostname()		    
-    HOST = scapy.all.get_if_addr('eth1')		                                # Host IP
-    PORT = 13000			                                # specified PORT to connect
+    HOST = scapy.all.get_if_addr('eth1')		            # Host IP
+    PORT = 15000			                                # specified PORT to connect
     DEST_PORT = 13117                                       # destenation PORT for broadcast
-    BROADCAST_ADDR = '172.1.255.255'     # ='127.1.0.255'        # broadcast IP
-    offer_str = "test offer!!"
+    BROADCAST_ADDR = '172.1.255.255'                        # broadcast IP
+    offer_str = make_offer(PORT)
     
     # udp_sock.bind((HOST,PORT))
     print ("Server started, listening on IP address ",HOST)
@@ -46,12 +46,16 @@ def start_server():
         if (now >= nextCastTime):
             # Time to send out the next Cast!
             print ("Sending out scheduled Cast at time ", now)
-            udp_sock.sendto(offer_str.encode(), (BROADCAST_ADDR, DEST_PORT))
+            udp_sock.sendto(offer_str, (BROADCAST_ADDR, DEST_PORT))
             nextCastTime = now + 1.0   # do it again in another second
 
 
 def gather_client():
     print("method gather_client not yet inplemented")
+
+def make_offer(port):
+    offer = struct.pack('IBH',0xfeedbeef,0x2,port)
+    return offer
 
 if __name__ == '__main__': 
 	Main() 
