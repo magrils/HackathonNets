@@ -69,18 +69,22 @@ def gather_client(tcp_sock):
         # tcp_sock.setblocking(0)
         client_sock,addr=tcp_sock.accept()
         team_name = client_sock.recvfrom(100)
-        print(team_name)
+        print(team_name) #test print
         start_new_thread(thread_life, (client_sock,team_name))
         
     except:
-        print("no new connections")
+        print("no new connections") #debug print
 
 
-def thread_life(c,team_name):
+def thread_life(c,team_name,startMsg):
     latch.acquire()
     latch.wait()
     latch.release()
-    print('thread \'', team_name , '\' is ready!!')
+    print('thread \'', team_name , '\' is ready!!') #test print
+    try:
+        c.send(startMsg.encode())
+    except:
+        print('team \'', team_name , '\' has disconnected')  #debug print
 
     while True:
         # data received from client
