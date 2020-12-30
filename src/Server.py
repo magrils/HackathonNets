@@ -62,8 +62,6 @@ def Main():
         exit()
 
     signal.signal(signal.SIGINT, int_handler)
-    signal.signal(signal.SIGSTOP, int_handler)
-    signal.signal(signal.SIGTSTP, int_handler)
 
     while True:
         start_server(PORT,udp_sock,tcp_sock)
