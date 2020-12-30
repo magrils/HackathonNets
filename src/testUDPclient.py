@@ -49,7 +49,7 @@ def make_tcp_connection(host,port):
 	team_name = "Maccabi Kushilamam City\n"
 	try:
 		tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		tcp_sock.settimeout(10.0)
+		# tcp_sock.settimeout(10.0)
 		tcp_sock.connect((host, port))					# connect to server on local computer
 	except:
 		print("failed while connecting to server")
@@ -61,11 +61,12 @@ def make_tcp_connection(host,port):
 		print("failed while sending team name")
 		return False
 	try:
-		tcp_sock.settimeout(10.0)
+		# tcp_sock.settimeout(10.0)
 		data = tcp_sock.recv(4096)
 		if(data):
 			print(str(data.decode('ascii')))
 			game_mode(tcp_sock)
+
 			print("Server disconnected, listening for offer requests...")
 		else:
 			print("got empty message from server after sending team name")
@@ -89,10 +90,16 @@ def game_mode(tcp_sock):
 			to_read, _, _ = select.select([sys.stdin], [], [], (end_game_time - time.time()))
 			if (to_read):
 				x=getch.getch()
-			print("you typed in\ " + x)
+			#print("you typed in\ " + x)
 			tcp_sock.send(x.encode())
 		except:
 			break
+	try:
+		summary_msg=tcp_sock.recv(1024)
+		if(summary_msg):
+			print(summary_msg.decode())
+	except:
+		print("getting summary message failed")
 
 
 if __name__ == '__main__':

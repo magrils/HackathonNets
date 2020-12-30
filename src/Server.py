@@ -14,7 +14,7 @@ server_lock = threading.Lock()
 latch = threading.Condition()
 # pool = []
 start_msg = ''
-summary_msg=''
+summary_msg='kushilamam zona'
 game_is_alive = True
 groups = [[], []]
 score_board = [0,0]
@@ -103,6 +103,7 @@ def thread_life(c, team_name,team_index):
 
     while True:
         try:
+
             to_read,_,_=select.select([c],[],[],(end_game_time-time.time()))
             if(c in to_read):
                 data = c.recv(1024)
@@ -110,16 +111,19 @@ def thread_life(c, team_name,team_index):
                     break
                 update_to_game_stats(team_index,team_name,data.decode())    # update score and other statistic
         except:
+            print("test")
             break
-        game_lock.acquire()
-        terminate = not game_is_alive                                   # check if game is over
-        game_lock.release()
-        if terminate:
-            break                                                       # connection closed
+    latch.acquire()
+    if game_is_alive:
+        print("team name:"+team_name+" is waiting")
+        latch.wait() # check if game is over
+    latch.release()
+    print("terminated propperly")
+                                                               # connection closed
 
     try:
         c.send(summary_msg.encode())
-        print(summary_msg)
+        print("sent summary msg to:"+team_name)
     except:
         print("sending summary message failed")
     try:
@@ -149,11 +153,11 @@ def game_mode():
 
     time.sleep(GAME_DURATION)
 
+    latch.acquire()
     global game_is_alive
-    game_lock.acquire()
     game_is_alive = False
-    game_lock.release()
-
+    latch.notify_all()
+    latch.release()
     make_summary_msg()
 
     #TODO:join all threads
@@ -183,6 +187,7 @@ def make_summary_msg():
         winner_str = "its a TIE!!!!!"
     summary_msg = """Game over!\nGroup 1 typed in """+str(score_board[0])+""" characters. Group 2 typed in """+str(score_board[1])+""" characters.\n"""+winner_str
     game_lock.release()
+    print(summary_msg)
 
 
 def init_game_data():
