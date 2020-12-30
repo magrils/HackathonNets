@@ -13,7 +13,7 @@ def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host = scapy.all.get_if_addr('eth1')				# The server's hostname or IP address
+	udp_host = '172.17.0.1'#scapy.all.get_if_addr('eth1')				# The server's hostname or IP address
 	udp_port = 13117			        					# specified port to connect
 
 	print ("UDP host IP:", udp_host)
@@ -66,6 +66,7 @@ def make_tcp_connection(host,port):
 		if(data):
 			print(str(data.decode('ascii')))
 			game_mode(tcp_sock)
+
 			print("Server disconnected, listening for offer requests...")
 		else:
 			print("got empty message from server after sending team name")
@@ -89,10 +90,16 @@ def game_mode(tcp_sock):
 			to_read, _, _ = select.select([sys.stdin], [], [], (end_game_time - time.time()))
 			if (to_read):
 				x=getch.getch()
-			print("you typed in\ " + x)
+			#print("you typed in\ " + x)
 			tcp_sock.send(x.encode())
 		except:
 			break
+	try:
+		summary_msg=tcp_sock.recv(1024)
+		if(summary_msg):
+			print(summary_msg.decode())
+	except:
+		print("getting summary message failed")
 
 
 if __name__ == '__main__':

@@ -14,6 +14,7 @@ server_lock = threading.Lock()
 latch = threading.Condition()
 # pool = []
 start_msg = ''
+summary_msg=''
 game_is_alive = True
 groups = [[], []]
 score_board = [0,0]
@@ -21,7 +22,7 @@ score_board = [0,0]
 
 
 def Main():
-    HOST = scapy.all.get_if_addr('eth1')                    # Host IP
+    HOST = '172.17.0.1'#scapy.all.get_if_addr('eth1')                    # Host IP
     PORT = 13000			                                             # specified PORT to connect
 
     tcp_sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -49,7 +50,7 @@ def start_server(PORT,tcp_sock):
     udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
     DEST_PORT = 13117                                               # destenation PORT for broadcast
-    BROADCAST_ADDR = '172.1.255.255'              # broadcast IP
+    BROADCAST_ADDR = '172.17.255.255'#'172.1.255.255'              # broadcast IP
     offer_str = make_offer(PORT)
 
     nextCastTime = time.time()                                      # When we want to send the next periodic-ping-message out
@@ -115,6 +116,12 @@ def thread_life(c, team_name,team_index):
         game_lock.release()
         if terminate:
             break                                                       # connection closed
+
+    try:
+        c.send(summary_msg.encode())
+        print(summary_msg)
+    except:
+        print("sending summary message failed")
     try:
         c.close()
     except:
@@ -147,7 +154,7 @@ def game_mode():
     game_is_alive = False
     game_lock.release()
 
-    print_summary_msg()
+    make_summary_msg()
 
     #TODO:join all threads
     init_game_data()        #re-instate initial (new) game data
@@ -161,8 +168,10 @@ def make_start_msg():
     game_lock.release()
 
 
-def print_summary_msg():
+def make_summary_msg():
+
     game_lock.acquire()
+    global summary_msg
     winner_index= 0
     winner_str = "Group 1 wins!"
     if score_board[0] < score_board[1] :
@@ -173,7 +182,6 @@ def print_summary_msg():
     if score_board[0] == score_board[1]:
         winner_str = "its a TIE!!!!!"
     summary_msg = """Game over!\nGroup 1 typed in """+str(score_board[0])+""" characters. Group 2 typed in """+str(score_board[1])+""" characters.\n"""+winner_str
-    print(summary_msg)
     game_lock.release()
 
 
