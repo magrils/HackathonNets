@@ -21,22 +21,27 @@ score_board = [0,0]
 
 
 def Main():
-    HOST = '172.17.0.1'#scapy.all.get_if_addr('eth1')                    # Host IP
+    HOST = scapy.all.get_if_addr('eth1')                    # Host IP
     PORT = 13000			                                             # specified PORT to connect
 
+    tcp_sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    tcp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	    #make IP address reusable
+    tcp_sock.bind((HOST,PORT))
+    tcp_sock.listen()
     print ("Server started, listening on IP address ",HOST)
     while True:
-        tcp_sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        tcp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	    #make IP address reusable
-        tcp_sock.bind((HOST,PORT))
-        tcp_sock.listen()
         start_server(PORT,tcp_sock)
         game_mode()
         print("Game over, sending out offer requests...")
-        try:
-            tcp_sock.close()
-        except:
-            print("Error closing server TCP socket...") #debug print
+        # try:
+        #     tcp_sock.close()
+        # except:
+        #     print("Error closing server TCP socket...") #debug print
+
+
+def make_offer(port):
+    offer=struct.pack('IBH',0xfeedbeef,0x2,port)
+    return offer
 
 
 def start_server(PORT,tcp_sock):
@@ -44,7 +49,7 @@ def start_server(PORT,tcp_sock):
     udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 
     DEST_PORT = 13117                                               # destenation PORT for broadcast
-    BROADCAST_ADDR = '172.17.255.255' #'172.1.255.255'              # broadcast IP
+    BROADCAST_ADDR = '172.1.255.255'              # broadcast IP
     offer_str = make_offer(PORT)
 
     nextCastTime = time.time()                                      # When we want to send the next periodic-ping-message out
@@ -71,23 +76,16 @@ def start_server(PORT,tcp_sock):
             nextCastTime = now + 1.0   # do it again in another second
 
 
-def make_offer(port):
-    offer=struct.pack('IBH',0xfeedbeef,0x2,port)
-    return offer
-
 
 def gather_client(tcp_sock,team_index):
-    server_lock.acquire()
     try:
-        # tcp_sock.setblocking(0)
         client_sock,addr=tcp_sock.accept()
         team_name= client_sock.recv(128)
         start_new_thread(thread_life, (client_sock,team_name.decode(),team_index))
         server_lock.release()
         return True
     except:
-        print("no new connections") #debug print
-        server_lock.release()
+        # print("no new connections") #debug print
         return False
 
 
