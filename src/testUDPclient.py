@@ -46,7 +46,7 @@ def Main():
 
 
 def make_tcp_connection(host,port):
-	team_name = "Maccabi Kushilamam City\n"
+	team_name = "Hapoel Kushilamam United\n"
 	try:
 		tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		# tcp_sock.settimeout(10.0)

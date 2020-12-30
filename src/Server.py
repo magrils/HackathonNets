@@ -14,7 +14,7 @@ server_lock = threading.Lock()
 latch = threading.Condition()
 # pool = []
 start_msg = ''
-summary_msg='kushilamam zona'
+summary_msg=''
 game_is_alive = True
 groups = [[], []]
 score_board = [0,0]
@@ -57,6 +57,7 @@ def start_server(PORT,tcp_sock):
     start_time=nextCastTime
     team_index=0
     while (start_time+WAIT_TIME>=time.time()):
+        print("broadcast test")
         secondsUntilNextCast = nextCastTime - time.time()
         if (secondsUntilNextCast < 0):    
             secondsUntilNextCast = 0
@@ -80,10 +81,13 @@ def start_server(PORT,tcp_sock):
 
 def gather_client(tcp_sock,team_index):
     try:
+        print("try accepting client")
         client_sock,addr=tcp_sock.accept()
         team_name= client_sock.recv(128)
+        #server_lock.acquire()
         start_new_thread(thread_life, (client_sock,team_name.decode(),team_index))
-        server_lock.release()
+        #server_lock.release()
+        print(str(team_index)+":"+team_name.decode())
         return True
     except:
         # print("no new connections") #debug print
@@ -111,14 +115,12 @@ def thread_life(c, team_name,team_index):
                     break
                 update_to_game_stats(team_index,team_name,data.decode())    # update score and other statistic
         except:
-            print("test")
             break
     latch.acquire()
     if game_is_alive:
         print("team name:"+team_name+" is waiting")
         latch.wait() # check if game is over
     latch.release()
-    print("terminated propperly")
                                                                # connection closed
 
     try:
@@ -127,6 +129,7 @@ def thread_life(c, team_name,team_index):
     except:
         print("sending summary message failed")
     try:
+        print("closing connection to:"+team_name)
         c.close()
     except:
         print('team \'', team_name, '\' has disconnected')              # debug print
@@ -156,9 +159,9 @@ def game_mode():
     latch.acquire()
     global game_is_alive
     game_is_alive = False
+    make_summary_msg()
     latch.notify_all()
     latch.release()
-    make_summary_msg()
 
     #TODO:join all threads
     init_game_data()        #re-instate initial (new) game data
