@@ -33,7 +33,7 @@ score_board = [0,0]
 
 
 def Main():
-    HOST = '172.17.0.1'#scapy.all.get_if_addr('eth1')                    # Host IP
+    HOST = scapy.all.get_if_addr('eth1') #'172.17.0.1'#                    # Host IP
     PORT = 13000			                                             # specified PORT to connect
 
     # start tcp socket
@@ -51,14 +51,14 @@ def Main():
         start_server(PORT,udp_sock,tcp_sock)
         game_mode()
         print(bcolors.BOLD + "Game over, sending out offer requests..." + bcolors.ENDC)
-    try:
-        tcp_sock.close()
-    except:
-        print("Error closing server TCP socket...") #debug print
-    try:
-        udp_sock.close()
-    except:
-        print("Error closing server TCP socket...")  # debug print
+    # try:
+    #     tcp_sock.close()
+    # except:
+    #     print("Error closing server TCP socket...") #debug print
+    # try:
+    #     udp_sock.close()
+    # except:
+    #     print("Error closing server TCP socket...")  # debug print
 
 
 def make_offer(port):
@@ -68,7 +68,7 @@ def make_offer(port):
 
 def start_server(PORT,udp_sock,tcp_sock):
     DEST_PORT = 13117                                               # destenation PORT for broadcast
-    BROADCAST_ADDR = '172.17.255.255'#'172.1.255.255'              # broadcast IP
+    BROADCAST_ADDR = '172.1.255.255' #'172.17.255.255'#              # broadcast IP
     offer_str = make_offer(PORT)
 
     nextCastTime = time.time()                                      # When we want to send the next periodic-ping-message out

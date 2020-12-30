@@ -1,11 +1,29 @@
 import getch
+import signal
+def handler(signal_num,frame):
+    raise Exception()
+
+def loop():
+    print("start typing")
+    while True:
+        try:
+            x = getch.getch()
+            if x=='q':
+                break
+            print("you typed in\ " + x)
+        except:
+            break
+    print("end typing")
 
 def Main():
-    while True:
-        x = getch.getch()
-        print("you typed in\ " + x)
+    signal.signal(signal.SIGALRM,handler)
+    signal.alarm(10)
+    try:
+        loop()
+    except:
+        print("my error")
 
-
+    signal.alarm(0)
 
 
 
