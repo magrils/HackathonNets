@@ -104,7 +104,6 @@ def game_loop(tcp_sock,end_game_time):
 			break
 
 def game_mode(tcp_sock):
-	sys.stdin.flush()
 	end_game_time= time.time()+GAME_DURATION
 
 	signal.signal(signal.SIGALRM, handler)
