@@ -62,13 +62,13 @@ def Main():
 
 
 def make_offer(port):
-    offer=struct.pack('IBH',0xfeedbeef,0x2,port)
+    offer=struct.pack('LBH',0xfeedbeef,0x2,port)
     return offer
 
 
 def start_server(PORT,udp_sock,tcp_sock):
     DEST_PORT = 13117                                               # destenation PORT for broadcast
-    BROADCAST_ADDR = '172.1.255.255' #'172.17.255.255'#              # broadcast IP
+    BROADCAST_ADDR = '172.1.255.255' # '172.17.255.255'#             # broadcast IP
     offer_str = make_offer(PORT)
 
     nextCastTime = time.time()                                      # When we want to send the next periodic-ping-message out
@@ -160,7 +160,7 @@ def update_to_game_stats(team_index,team_name,data):
 
 def game_mode():
     make_start_msg()
-    print(bcolors.OKGREEN + start_msg + bcolors.ENDC)
+    print(bcolors.OKCYAN + start_msg + bcolors.ENDC)
     latch.acquire()
     latch.notify_all()          # notify all threads about game starting
     latch.release()
@@ -174,7 +174,6 @@ def game_mode():
     latch.notify_all()
     latch.release()
 
-    #TODO:join all threads
     init_game_data()        #re-instate initial (new) game data
 
 
@@ -201,7 +200,7 @@ def make_summary_msg():
         winner_str = "its a TIE!!!!!"
     summary_msg = """Game over!\nGroup 1 typed in """+str(score_board[0])+""" characters. Group 2 typed in """+str(score_board[1])+""" characters.\n"""+winner_str
     game_lock.release()
-    print(bcolors.BOLD + summary_msg + bcolors.ENDC)
+    print(bcolors.OKGREEN + summary_msg + bcolors.ENDC)
 
 
 def init_game_data():

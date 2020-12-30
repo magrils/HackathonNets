@@ -24,18 +24,18 @@ def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host = scapy.all.get_if_addr('eth1')	#'172.17.0.1'#				# The server's hostname or IP address
+	udp_host =  scapy.all.get_if_addr('eth1')	#'172.17.0.1'#				# The server's hostname or IP address
 	udp_port = 13117			        					# specified port to connect
 
-	print ("UDP host IP:", udp_host)
-	print ("UDP host Port:", udp_port)
+	print (bcolors.BOLD + "UDP host IP:", udp_host+ bcolors.ENDC)
+	print (bcolors.BOLD + "UDP host Port:", udp_port+ bcolors.ENDC)
 
 
 	sock.bind(("",udp_port))
 
 	def verify_message(data):
 		try:
-			magic_cookie, message_type, port = struct.unpack('IBH', data)
+			magic_cookie, message_type, port = struct.unpack('LBH', data)
 			if((magic_cookie==0xfeedbeef) and (message_type==2)):
 				return port
 			else:
@@ -73,10 +73,10 @@ def make_tcp_connection(host,port):
 		# tcp_sock.settimeout(10.0)
 		data = tcp_sock.recv(4096)
 		if(data):
-			print(str(data.decode('ascii')))
+			print(bcolors.OKCYAN + str(data.decode('ascii')) + bcolors.ENDC)
 			game_mode(tcp_sock)
 			print("\n\n")
-			print("Server disconnected, listening for offer requests...")
+			print(bcolors.BOLD +"Server disconnected, listening for offer requests..." +bcolors.ENDC)
 		else:
 			# print("got empty message from server after sending team name")
 			return False
@@ -99,7 +99,6 @@ def game_loop(tcp_sock,end_game_time):
 			to_read, _, _ = select.select([sys.stdin], [], [], (end_game_time - time.time()))
 			if (to_read):
 				x=getch.getch()
-			#print("you typed in\ " + x)
 			tcp_sock.send(x.encode())
 		except:
 			break
