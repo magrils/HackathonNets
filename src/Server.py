@@ -57,7 +57,6 @@ def start_server(PORT,tcp_sock):
     start_time=nextCastTime
     team_index=0
     while (start_time+WAIT_TIME>=time.time()):
-        print("broadcast test")
         secondsUntilNextCast = nextCastTime - time.time()
         if (secondsUntilNextCast < 0):    
             secondsUntilNextCast = 0
@@ -81,16 +80,13 @@ def start_server(PORT,tcp_sock):
 
 def gather_client(tcp_sock,team_index):
     try:
-        print("try accepting client")
         client_sock,addr=tcp_sock.accept()
         team_name= client_sock.recv(128)
         #server_lock.acquire()
         start_new_thread(thread_life, (client_sock,team_name.decode(),team_index))
         #server_lock.release()
-        print(str(team_index)+":"+team_name.decode())
         return True
     except:
-        # print("no new connections") #debug print
         return False
 
 
@@ -118,18 +114,15 @@ def thread_life(c, team_name,team_index):
             break
     latch.acquire()
     if game_is_alive:
-        print("team name:"+team_name+" is waiting")
         latch.wait() # check if game is over
     latch.release()
                                                                # connection closed
 
     try:
         c.send(summary_msg.encode())
-        print("sent summary msg to:"+team_name)
     except:
         print("sending summary message failed")
     try:
-        print("closing connection to:"+team_name)
         c.close()
     except:
         print('team \'', team_name, '\' has disconnected')              # debug print
@@ -149,7 +142,7 @@ def update_to_game_stats(team_index,team_name,data):
 
 def game_mode():
     make_start_msg()
-
+    print(start_msg)
     latch.acquire()
     latch.notify_all()          # notify all threads about game starting
     latch.release()

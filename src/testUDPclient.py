@@ -31,7 +31,6 @@ def Main():
 			else:
 				return None
 		except:
-			print("unable to unpack message: ",data)
 			return None
 
 
@@ -52,13 +51,13 @@ def make_tcp_connection(host,port):
 		# tcp_sock.settimeout(10.0)
 		tcp_sock.connect((host, port))					# connect to server on local computer
 	except:
-		print("failed while connecting to server")
+		#print("failed while connecting to server")
 		return False
 	try:
 		# message you send to server
 		tcp_sock.send(team_name.encode('ascii'))
 	except:
-		print("failed while sending team name")
+		# print("failed while sending team name")
 		return False
 	try:
 		# tcp_sock.settimeout(10.0)
@@ -67,12 +66,12 @@ def make_tcp_connection(host,port):
 			print(str(data.decode('ascii')))
 			game_mode(tcp_sock)
 
-			print("Server disconnected, listening for offer requests...")
+			# print("Server disconnected, listening for offer requests...")
 		else:
-			print("got empty message from server after sending team name")
+			# print("got empty message from server after sending team name")
 			return False
 	except:
-		print("failed after sending team name")
+		# print("failed after sending team name")
 		return False
 	try:
 		tcp_sock.close()
