@@ -1,4 +1,5 @@
 import select
+import signal
 import socket
 import sys
 import time
@@ -6,6 +7,16 @@ import scapy.all
 import struct
 import fcntl, os
 import getch
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 GAME_DURATION=10
 
@@ -35,7 +46,7 @@ def Main():
 
 
 	while True:
-		print ("Waiting for server...")
+		print ("Waiting for server..." )
 		data,addr = sock.recvfrom(1024)				#receive data from client
 		(host,_)=addr
 		port=verify_message(data)
@@ -65,8 +76,8 @@ def make_tcp_connection(host,port):
 		if(data):
 			print(str(data.decode('ascii')))
 			game_mode(tcp_sock)
-
-			# print("Server disconnected, listening for offer requests...")
+			print("\n\n")
+			print("Server disconnected, listening for offer requests...")
 		else:
 			# print("got empty message from server after sending team name")
 			return False
@@ -80,10 +91,10 @@ def make_tcp_connection(host,port):
 		print("failed in properly closing the connection to server")
 		return False
 
+def handler(signal_num,frame):
+    raise Exception()
 
-def game_mode(tcp_sock):
-	sys.stdin.flush()
-	end_game_time= time.time()+GAME_DURATION
+def game_loop(tcp_sock,end_game_time):
 	while True:
 		try:
 			to_read, _, _ = select.select([sys.stdin], [], [], (end_game_time - time.time()))
@@ -93,10 +104,24 @@ def game_mode(tcp_sock):
 			tcp_sock.send(x.encode())
 		except:
 			break
+
+def game_mode(tcp_sock):
+	sys.stdin.flush()
+	end_game_time= time.time()+GAME_DURATION
+
+	signal.signal(signal.SIGALRM, handler)
+	signal.alarm(GAME_DURATION)
+	try:
+		game_loop(tcp_sock,end_game_time)
+	except:
+		print("my error")
+
+	signal.alarm(0)
+
 	try:
 		summary_msg=tcp_sock.recv(1024)
 		if(summary_msg):
-			print(summary_msg.decode())
+			print('\n'+summary_msg.decode())
 	except:
 		print("getting summary message failed")
 

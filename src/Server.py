@@ -6,6 +6,17 @@ import struct
 from _thread import *
 import threading
 
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
+
 #Global variables
 GAME_DURATION=10
 WAIT_TIME=10
@@ -25,19 +36,29 @@ def Main():
     HOST = '172.17.0.1'#scapy.all.get_if_addr('eth1')                    # Host IP
     PORT = 13000			                                             # specified PORT to connect
 
+    # start tcp socket
     tcp_sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	    #make IP address reusable
     tcp_sock.bind((HOST,PORT))
     tcp_sock.listen()
-    print ("Server started, listening on IP address ",HOST)
+    print (bcolors.OKBLUE+ "Server started, listening on IP address ",HOST + bcolors.ENDC)
+
+    #start udp socket
+    udp_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  # UDP socket
+    udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+
     while True:
-        start_server(PORT,tcp_sock)
+        start_server(PORT,udp_sock,tcp_sock)
         game_mode()
-        print("Game over, sending out offer requests...")
-        # try:
-        #     tcp_sock.close()
-        # except:
-        #     print("Error closing server TCP socket...") #debug print
+        print(bcolors.BOLD + "Game over, sending out offer requests..." + bcolors.ENDC)
+    try:
+        tcp_sock.close()
+    except:
+        print("Error closing server TCP socket...") #debug print
+    try:
+        udp_sock.close()
+    except:
+        print("Error closing server TCP socket...")  # debug print
 
 
 def make_offer(port):
@@ -45,10 +66,7 @@ def make_offer(port):
     return offer
 
 
-def start_server(PORT,tcp_sock):
-    udp_sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  # UDP socket
-    udp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-
+def start_server(PORT,udp_sock,tcp_sock):
     DEST_PORT = 13117                                               # destenation PORT for broadcast
     BROADCAST_ADDR = '172.17.255.255'#'172.1.255.255'              # broadcast IP
     offer_str = make_offer(PORT)
@@ -142,7 +160,7 @@ def update_to_game_stats(team_index,team_name,data):
 
 def game_mode():
     make_start_msg()
-    print(start_msg)
+    print(bcolors.OKGREEN + start_msg + bcolors.ENDC)
     latch.acquire()
     latch.notify_all()          # notify all threads about game starting
     latch.release()
@@ -183,7 +201,7 @@ def make_summary_msg():
         winner_str = "its a TIE!!!!!"
     summary_msg = """Game over!\nGroup 1 typed in """+str(score_board[0])+""" characters. Group 2 typed in """+str(score_board[1])+""" characters.\n"""+winner_str
     game_lock.release()
-    print(summary_msg)
+    print(bcolors.BOLD + summary_msg + bcolors.ENDC)
 
 
 def init_game_data():
