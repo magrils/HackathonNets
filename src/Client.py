@@ -24,11 +24,11 @@ def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host =  scapy.all.get_if_addr('eth1')	#'172.17.0.1'#				# The server's hostname or IP address
+	udp_host = scapy.all.get_if_addr('eth1')	#'172.17.0.1'#			# The server's hostname or IP address
 	udp_port = 13117			        					# specified port to connect
 
-	print (bcolors.BOLD + "UDP host IP:", udp_host+ bcolors.ENDC)
-	print (bcolors.BOLD + "UDP host Port:", udp_port+ bcolors.ENDC)
+	print (bcolors.BOLD + "UDP host IP:", str(udp_host)+""+ bcolors.ENDC)
+	print (bcolors.BOLD + "UDP host Port:", str(udp_port)+""+ bcolors.ENDC)
 
 
 	sock.bind(("",udp_port))

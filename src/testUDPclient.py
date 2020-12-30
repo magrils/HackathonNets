@@ -1,4 +1,5 @@
 import select
+import signal
 import socket
 import sys
 import time
@@ -6,6 +7,16 @@ import scapy.all
 import struct
 import fcntl, os
 import getch
+class bcolors:
+    HEADER = '\033[95m'
+    OKBLUE = '\033[94m'
+    OKCYAN = '\033[96m'
+    OKGREEN = '\033[92m'
+    WARNING = '\033[93m'
+    FAIL = '\033[91m'
+    ENDC = '\033[0m'
+    BOLD = '\033[1m'
+    UNDERLINE = '\033[4m'
 
 GAME_DURATION=10
 
@@ -13,19 +24,18 @@ def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host = '172.17.0.1'#scapy.all.get_if_addr('eth1')				# The server's hostname or IP address
+	udp_host =  '172.17.0.1'#	scapy.all.get_if_addr('eth1')	#			# The server's hostname or IP address
 	udp_port = 13117			        					# specified port to connect
 
-	print ("UDP host IP:", udp_host)
-	print ("UDP host Port:", udp_port)
+	print (bcolors.BOLD + "UDP host IP:", str(udp_host)+""+ bcolors.ENDC)
+	print (bcolors.BOLD + "UDP host Port:", str(udp_port)+""+ bcolors.ENDC)
 
-	# sock.sendto(msg.encode(),(udp_host,udp_port))		# Sending message to UDP server
 
 	sock.bind(("",udp_port))
 
 	def verify_message(data):
 		try:
-			magic_cookie, message_type, port = struct.unpack('IBH', data)
+			magic_cookie, message_type, port = struct.unpack('LBH', data)
 			if((magic_cookie==0xfeedbeef) and (message_type==2)):
 				return port
 			else:
@@ -35,7 +45,7 @@ def Main():
 
 
 	while True:
-		print ("Waiting for server...")
+		print ("Waiting for server..." )
 		data,addr = sock.recvfrom(1024)				#receive data from client
 		(host,_)=addr
 		port=verify_message(data)
@@ -45,7 +55,7 @@ def Main():
 
 
 def make_tcp_connection(host,port):
-	team_name = "Hapoel Kushilamam United\n"
+	team_name = "Hpoel Kushilamam City\n"
 	try:
 		tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 		# tcp_sock.settimeout(10.0)
@@ -63,10 +73,10 @@ def make_tcp_connection(host,port):
 		# tcp_sock.settimeout(10.0)
 		data = tcp_sock.recv(4096)
 		if(data):
-			print(str(data.decode('ascii')))
+			print(bcolors.OKCYAN + str(data.decode('ascii')) + bcolors.ENDC)
 			game_mode(tcp_sock)
-
-			# print("Server disconnected, listening for offer requests...")
+			print("\n\n")
+			print(bcolors.BOLD +"Server disconnected, listening for offer requests..." +bcolors.ENDC)
 		else:
 			# print("got empty message from server after sending team name")
 			return False
@@ -80,23 +90,35 @@ def make_tcp_connection(host,port):
 		print("failed in properly closing the connection to server")
 		return False
 
+def handler(signal_num,frame):
+    raise Exception()
 
-def game_mode(tcp_sock):
-	sys.stdin.flush()
-	end_game_time= time.time()+GAME_DURATION
+def game_loop(tcp_sock,end_game_time):
 	while True:
 		try:
 			to_read, _, _ = select.select([sys.stdin], [], [], (end_game_time - time.time()))
 			if (to_read):
 				x=getch.getch()
-			#print("you typed in\ " + x)
 			tcp_sock.send(x.encode())
 		except:
 			break
+
+def game_mode(tcp_sock):
+	end_game_time= time.time()+GAME_DURATION
+
+	signal.signal(signal.SIGALRM, handler)
+	signal.alarm(GAME_DURATION)
+	try:
+		game_loop(tcp_sock,end_game_time)
+	except:
+		print("my error")
+
+	signal.alarm(0)
+
 	try:
 		summary_msg=tcp_sock.recv(1024)
 		if(summary_msg):
-			print(summary_msg.decode())
+			print('\n'+summary_msg.decode())
 	except:
 		print("getting summary message failed")
 
