@@ -20,24 +20,28 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 #Global variables
+#Network Parmaters:
+HOST =   scapy.all.get_if_addr('eth1') #'172.17.0.1'                   # Host IP
+PORT = 13000			                                             # specified PORT to connect
+BROADCAST_DEST_PORT = 13117  # destenation PORT for broadcast
+BROADCAST_ADDR =   '172.1.255.255' #'172.17.255.255'             # broadcast IP
+#Game Paramters
 GAME_DURATION=10
 WAIT_TIME=10
-game_lock = threading.Lock()
-server_lock = threading.Lock()
-latch = threading.Condition()
-# pool = []
+BROADCAST_INTERVAL = 1.0
+#Game Data
 start_msg = ''
 summary_msg=''
 game_is_alive = True
 groups = [[], []]
 score_board = [0,0]
 #statictics (count,...)
+game_lock = threading.Lock()
+server_lock = threading.Lock()
+latch = threading.Condition()
 
 
 def Main():
-    HOST = scapy.all.get_if_addr('eth1') # '172.17.0.1' #                   # Host IP
-    PORT = 13000			                                             # specified PORT to connect
-
     # start tcp socket
     tcp_sock=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     tcp_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	    #make IP address reusable
@@ -76,8 +80,6 @@ def make_offer(port):
 
 
 def start_server(PORT,udp_sock,tcp_sock):
-    DEST_PORT = 13117                                               # destenation PORT for broadcast
-    BROADCAST_ADDR = '172.1.255.255' #'172.17.255.255'#             # broadcast IP
     offer_str = make_offer(PORT)
 
     nextCastTime = time.time()                                      # When we want to send the next periodic-ping-message out
@@ -85,7 +87,7 @@ def start_server(PORT,udp_sock,tcp_sock):
     team_index=0
     while (start_time+WAIT_TIME>=time.time()):
         secondsUntilNextCast = nextCastTime - time.time()
-        if (secondsUntilNextCast < 0):    
+        if (secondsUntilNextCast < 0):
             secondsUntilNextCast = 0
 
                                                                     # select() won't return until 'udp_sock' has some data
@@ -96,12 +98,12 @@ def start_server(PORT,udp_sock,tcp_sock):
             if gather_client(tcp_sock,team_index):
                 team_index+=1
 
-        
+
         now = time.time()
         if (now >= nextCastTime):
             # Time to send out the next Cast!
-            udp_sock.sendto(offer_str, (BROADCAST_ADDR, DEST_PORT))
-            nextCastTime = now + 1.0   # do it again in another second
+            udp_sock.sendto(offer_str, (BROADCAST_ADDR, BROADCAST_DEST_PORT))
+            nextCastTime = now + BROADCAST_INTERVAL  # do it again in another second
 
 
 

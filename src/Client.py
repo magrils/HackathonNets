@@ -17,21 +17,23 @@ class bcolors:
     ENDC = '\033[0m'
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
-
+#Global Variables
 GAME_DURATION=10
+UDP_PORT = 13117  # specified port to connect
+UDP_HOST = scapy.all.get_if_addr('eth1') #'172.17.0.1'			# The server's hostname or IP address
+BROADCAST_LISTEN_ADDRESS= ""
+
 
 def Main():
 	sock = socket.socket(socket.AF_INET,socket.SOCK_DGRAM)  	# UDP socket
 	sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)	#make IP address reusable
 
-	udp_host = scapy.all.get_if_addr('eth1')	#'172.17.0.1'#			# The server's hostname or IP address
-	udp_port = 13117			        					# specified port to connect
 
-	print (bcolors.BOLD + "UDP host IP:", str(udp_host)+""+ bcolors.ENDC)
-	print (bcolors.BOLD + "UDP host Port:", str(udp_port)+""+ bcolors.ENDC)
+	print (bcolors.BOLD + "UDP host IP:", str(UDP_HOST) + "" + bcolors.ENDC)
+	print (bcolors.BOLD + "UDP host Port:", str(UDP_PORT) + "" + bcolors.ENDC)
 
 
-	sock.bind(("",udp_port))
+	sock.bind((BROADCAST_LISTEN_ADDRESS, UDP_PORT))
 
 	def verify_message(data):
 		try:
@@ -58,19 +60,15 @@ def make_tcp_connection(host,port):
 	team_name = "Maccabi Kushilamam City\n"
 	try:
 		tcp_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-		# tcp_sock.settimeout(10.0)
 		tcp_sock.connect((host, port))					# connect to server on local computer
 	except:
-		#print("failed while connecting to server")
 		return False
 	try:
 		# message you send to server
 		tcp_sock.send(team_name.encode('ascii'))
 	except:
-		# print("failed while sending team name")
 		return False
 	try:
-		# tcp_sock.settimeout(10.0)
 		data = tcp_sock.recv(4096)
 		if(data):
 			print(bcolors.OKCYAN + str(data.decode('ascii')) + bcolors.ENDC)
@@ -78,10 +76,8 @@ def make_tcp_connection(host,port):
 			print("\n\n")
 			print(bcolors.BOLD +"Server disconnected, listening for offer requests..." +bcolors.ENDC)
 		else:
-			# print("got empty message from server after sending team name")
 			return False
 	except:
-		# print("failed after sending team name")
 		return False
 	try:
 		tcp_sock.close()
