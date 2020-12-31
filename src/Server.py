@@ -21,6 +21,7 @@ class bcolors:
 
 #Global variables
 #Network Parmaters:
+
 HOST =   scapy.all.get_if_addr('eth1') #'172.17.0.1'                   # Host IP
 PORT = 13000			                                             # specified PORT to connect
 BROADCAST_DEST_PORT = 13117  # destenation PORT for broadcast
